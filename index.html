@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Número Mágico</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="game-wrapper">
+        <div class="game-card">
+            <header>
+                <div class="icon-container">
+                    <span class="icon">✨</span>
+                </div>
+                <h1>Número Mágico</h1>
+                <p>He pensado un número del <strong>1 al 100</strong>. ¿Puedes adivinarlo?</p>
+            </header>
+            <div class="game-stats">
+                <div class="stat-pill">
+                    <span class="stat-label">Intentos restantes</span>
+                    <span class="stat-value" id="attempts-left">10</span>
+                </div>
+            </div>
+
+            <!-- Área principal de control del juego -->
+            <main>
+                <!-- Sección de entrada: Caja de texto para el número y el botón principal -->
+                <div class="input-group" id="input-section">
+                    <input type="number" id="guess-input" min="1" max="100" placeholder="00" autofocus>
+                    <button id="guess-button" class="btn-primary">Adivinar</button>
+                </div>
+
+                <!-- Contenedor de mensajes: Muestra avisos (ej. "El número es mayor", "Ganaste", etc) -->
+                <div id="message-container" class="message-box hidden">
+                    <p id="game-message"></p>
+                </div>
+
+                <!-- Sección de acciones finales: Botón para reiniciar (oculto por defecto) -->
+                <div class="action-section hidden" id="action-section">
+                    <button id="restart-button" class="btn-secondary">Jugar de nuevo</button>
+                </div>
+
+                <!-- Historial de intentos: Muestra los números ingresados previamente (oculto por defecto) -->
+                <div class="history-wrapper hidden" id="history-section">
+                    <p class="history-title">Tu historial de intentos:</p>
+                    <div class="history-grid" id="history-list"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Referencia al archivo de JavaScript donde está la lógica del juego -->
+    <script src="js/script.js"></script>
+</body>
+
+</html>

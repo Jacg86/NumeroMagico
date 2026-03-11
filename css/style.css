@@ -1,6 +1,6 @@
-/* =========================================================================
+/* =========================
    VARIABLES GLOBALES Y TEMA
-   ========================================================================= */
+   ========================= */
 :root {
     --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
     --card-bg: #ffffff;
@@ -28,9 +28,9 @@
     --icon-bg: #3730a3;
 }
 
-/* =========================================================================
+/* ================
    RESETEOS BÁSICOS
-   ========================================================================= */
+   ================ */
 * {
     margin: 0;
     padding: 0;
@@ -47,16 +47,16 @@ body {
     align-items: center;
 }
 
-/* =========================================================================
+/* ==============================
    CONTENEDOR PRINCIPAL DEL JUEGO
-   ========================================================================= */
+   ============================== */
 .game-wrapper {
     width: 100%;
     max-width: 480px;
     padding: 20px;
 }
 
-/* Tarjeta blanca con estilo neumórfico suave */
+/* Tarjeta blanca con estilo suave */
 .game-card {
     position: relative;
     background: var(--card-bg);
@@ -80,9 +80,9 @@ body {
     }
 }
 
-/* =========================================================================
+/* ==========
    ENCABEZADO
-   ========================================================================= */
+   ========== */
 header {
     margin-bottom: 25px;
 }
@@ -114,12 +114,44 @@ header p {
     line-height: 1.5;
 }
 
-/* =========================================================================
-   ESTADÍSTICAS (INTENTOS)
-   ========================================================================= */
+/* =========================
+   DIFICULTAD Y ESTADÍSTICAS
+   ========================= */
+.difficulty-section {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.difficulty-section label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.form-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.form-select:hover {
+    border-color: var(--primary);
+}
+
 .game-stats {
     display: flex;
     justify-content: center;
+    gap: 15px;
     margin-bottom: 30px;
 }
 
@@ -154,9 +186,9 @@ header p {
     border-radius: 50%;
 }
 
-/* =========================================================================
+/* ========================
    ÁREA DE INPUTS Y BOTONES
-   ========================================================================= */
+   ======================== */
 .input-group {
     display: flex;
     flex-direction: column;
@@ -234,9 +266,31 @@ button {
     background: #e2e8f0;
 }
 
-/* =========================================================================
+/* Botón de peligro "Rendirse" */
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.extra-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.extra-actions button {
+    padding: 12px;
+    font-size: 14px;
+}
+
+/* ===========================
    CAJAS DE MENSAJES (Alertas)
-   ========================================================================= */
+   =========================== */
 .message-box {
     padding: 16px;
     border-radius: 12px;
@@ -285,9 +339,9 @@ button {
 
 /* Amarillo/Naranja */
 
-/* =========================================================================
+/* =====================
    HISTORIAL DE INTENTOS
-   ========================================================================= */
+   ===================== */
 .history-wrapper {
     margin-top: 30px;
     text-align: left;
@@ -346,19 +400,77 @@ button {
     background: #ecfdf5;
 }
 
-/* =========================================================================
+/* ===========================
+   VENTANA MODAL DE BIENVENIDA
+   =========================== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 28px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-content h2 {
+    font-size: 24px;
+    color: var(--text-main);
+    margin-bottom: 10px;
+}
+
+.modal-content p {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-bottom: 25px;
+}
+
+.modal-select {
+    margin-bottom: 30px;
+    flex-direction: column;
+}
+
+.modal-select select {
+    width: 100%;
+}
+
+@keyframes scaleUp {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* ==================
    CLASES DE UTILIDAD
-   ========================================================================= */
+   ================== */
 /* Oculta un elemento completamente (usado con JS) */
 .hidden {
     display: none !important;
 }
 
-/* Modificadores extra: Botón de tema */
-.theme-btn {
+/* Modificadores extra: Botones de control (Tema y Menú) */
+.theme-btn,
+.menu-btn {
     position: absolute;
     top: 25px;
-    right: 25px;
     background: transparent;
     border: none;
     font-size: 24px;
@@ -369,11 +481,21 @@ button {
     user-select: none;
 }
 
-.theme-btn:hover {
+.theme-btn {
+    right: 25px;
+}
+
+.menu-btn {
+    left: 25px;
+}
+
+.theme-btn:hover,
+.menu-btn:hover {
     transform: scale(1.15) rotate(15deg);
 }
 
-.theme-btn:active {
+.theme-btn:active,
+.menu-btn:active {
     transform: scale(0.9);
 }
 

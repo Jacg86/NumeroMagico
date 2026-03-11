@@ -1,11 +1,20 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // =========================================================
+    // =============================
     // VARIABLES DE ESTADO DEL JUEGO
-    // =========================================================
+    // =============================
     let magicNumber;          // Número aleatorio secreto
     let attempts;             // Contador actual de intentos
-    const maxAttempts = 10;   // Máximo de intentos permitidos
+    let maxAttempts = 10;     // Máximo de intentos permitidos
+    let maxRange = 100;       // Rango máximo del número
     let history = [];         // Arreglo para guardar los números y prevenir repetidos
+    let timerInterval;        // Referencia al temporizador
+    let timerSeconds = 0;     // Segundos restantes
+
+    const difficultyConfig = {
+        easy: { maxRange: 50, maxAttempts: 10, timeLimit: 0 },
+        medium: { maxRange: 100, maxAttempts: 7, timeLimit: 0 },
+        hard: { maxRange: 500, maxAttempts: 10, timeLimit: 60 }
+    };
 
     // =========================================================
     // REFERENCIAS AL DOM (Elementos de HTML que se manipularán)
@@ -22,12 +31,23 @@ document.addEventListener('DOMContentLoaded', () => {
         inputSection: document.getElementById('input-section'),
         actionSection: document.getElementById('action-section'),
         themeToggle: document.getElementById('theme-toggle'),
-        gameCard: document.querySelector('.game-card')
+        gameCard: document.querySelector('.game-card'),
+        difficultySelect: document.getElementById('difficulty-select'),
+        timerPill: document.getElementById('timer-pill'),
+        timeLeftSpan: document.getElementById('time-left'),
+        rangeText: document.getElementById('range-text'),
+        welcomeModal: document.getElementById('welcome-modal'),
+        startGameBtn: document.getElementById('start-game-btn'),
+        mainGame: document.getElementById('main-game'),
+        extraActions: document.getElementById('extra-actions'),
+        hintButton: document.getElementById('hint-button'),
+        giveupButton: document.getElementById('giveup-button'),
+        menuToggle: document.getElementById('menu-toggle')
     };
 
-    // =========================================================
+    // =======================
     // MODO OSCURO (Dark Mode)
-    // =========================================================
+    // =======================
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -49,9 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // =========================================================
+    // =============================
     // EFECTOS DE SONIDO Y ANIMACIÓN
-    // =========================================================
+    // =============================
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx;
 
@@ -119,34 +139,78 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.gameCard.classList.add('error-shake');
     }
 
-    // =========================================================
+    // =========================================
+    // FUNCIÓN AUXILIAR: Manejo del Temporizador
+    // =========================================
+    function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timerSeconds--;
+            elements.timeLeftSpan.textContent = timerSeconds;
+
+            if (timerSeconds <= 10) {
+                elements.timeLeftSpan.style.color = 'white';
+                elements.timeLeftSpan.style.background = 'var(--danger)';
+            }
+
+            if (timerSeconds <= 0) {
+                clearInterval(timerInterval);
+                endGame(false, null, true);
+            }
+        }, 1000);
+    }
+
+    // ===========================================
     // FUNCIÓN: INICIALIZAR EL JUEGO (O REINICIAR)
-    // =========================================================
+    // ===========================================
     function initGame() {
-        // 1. Generar número mágico entre 1 y 100
-        magicNumber = Math.floor(Math.random() * 100) + 1;
+        const diffKey = elements.difficultySelect.value;
+        const conf = difficultyConfig[diffKey];
+        maxRange = conf.maxRange;
+        maxAttempts = conf.maxAttempts;
+
+        // 1. Generar número mágico
+        magicNumber = Math.floor(Math.random() * maxRange) + 1;
         attempts = 0;
         history = [];
+
+        elements.rangeText.innerHTML = `He pensado un número del <strong>1 al ${maxRange}</strong>. ¿Puedes adivinarlo?`;
 
         // 2. Reiniciar interfaz (Pill de intentos y colores)
         elements.attemptsLeft.textContent = maxAttempts;
         elements.attemptsLeft.style.color = 'var(--primary)';
-        elements.attemptsLeft.style.background = '#e0e7ff';
+        elements.attemptsLeft.style.background = 'var(--icon-bg)';
 
-        // 3. Reactivar inputs
+        // 3. Reiniciar Temporizador UI
+        clearInterval(timerInterval);
+        if (conf.timeLimit > 0) {
+            elements.timerPill.classList.remove('hidden');
+            timerSeconds = conf.timeLimit;
+            elements.timeLeftSpan.textContent = timerSeconds;
+            elements.timeLeftSpan.style.color = 'var(--primary)';
+            elements.timeLeftSpan.style.background = 'var(--icon-bg)';
+        } else {
+            elements.timerPill.classList.add('hidden');
+        }
+
+        // 4. Reactivar inputs
         elements.guessInput.value = '';
         elements.guessInput.disabled = false;
         elements.guessButton.disabled = false;
+        elements.guessInput.max = maxRange;
+        elements.guessInput.placeholder = `1 - ${maxRange}`;
 
-        // 4. Ocultar mensajes e historial viejo
+        // 5. Ocultar mensajes e historial viejo
         elements.messageContainer.classList.add('hidden');
         elements.gameMessage.className = '';
         elements.historySection.classList.add('hidden');
         elements.historyList.innerHTML = '';
 
-        // 5. Ocultar botón "Reiniciar" y mostrar botón "Adivinar"
+        // 6. Ocultar botón "Reiniciar" y mostrar botón "Adivinar"
         elements.actionSection.classList.add('hidden');
         elements.inputSection.classList.remove('hidden');
+        elements.extraActions.classList.add('hidden');
+        elements.hintButton.classList.add('hidden');
 
         // Enfocar el input para escribir de inmediato
         elements.guessInput.focus();
@@ -155,9 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // console.log("Número mágico:", magicNumber);
     }
 
-    // =========================================================
+    // ========================================
     // FUNCIÓN: GESTIONAR LA LÓGICA DE Adivinar
-    // =========================================================
+    // ========================================
     function handleGuess() {
         initAudio();
 
@@ -171,9 +235,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const guess = parseInt(guessValue, 10);
 
-        // Válidación 2: Fuera del rango 1 al 100
-        if (guess < 1 || guess > 100) {
-            triggerError('El número debe ser del 1 al 100');
+        // Válidación 2: Fuera del rango maxRange
+        if (guess < 1 || guess > maxRange) {
+            triggerError(`El número debe estar entre 1 y ${maxRange}`);
             return;
         }
 
@@ -183,9 +247,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // ==============================================
+        // ===================================
         // Lógica: Número es un intento válido
-        // ==============================================
+        // ===================================
+        // Arrancar timer si es el primer intento
+        if (attempts === 0) {
+            if (difficultyConfig[elements.difficultySelect.value].timeLimit > 0) {
+                startTimer();
+            }
+        }
+
         attempts++;
         const remainingAttempts = maxAttempts - attempts;
 
@@ -201,6 +272,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mostrar bloques ocultos si es el primer intento
         elements.messageContainer.classList.remove('hidden');
         elements.historySection.classList.remove('hidden');
+        elements.extraActions.classList.remove('hidden');
+
+        // Mostrar botón de pista si lleva varios intentos fallidos (ej: 3 intentos) y le queda más de 1
+        if (attempts >= 3 && remainingAttempts > 1) {
+            elements.hintButton.classList.remove('hidden');
+        }
 
         // REVISEMOS LAS 3 CONDICIONES FINALES
         if (guess === magicNumber) {
@@ -209,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (attempts >= maxAttempts) {
             // [B] No acertó y los intentos se agotaron (perdió)
             addHistoryItem(guess, guess > magicNumber ? 'high' : 'low');
-            endGame(false, guess);
+            endGame(false, guess, false);
         } else {
             // [C] No acertó, pero tiene más intentos (sigue jugando)
             const hint = guess > magicNumber ? 'menor' : 'mayor';
@@ -230,9 +307,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =========================================================
+    // ====================================================
     // FUNCIÓN AUXILIAR: Añadir elemento visual al registro
-    // =========================================================
+    // ====================================================
     function addHistoryItem(guess, status, icon) {
         history.push(guess); // Guardar en el bloque de memoria
 
@@ -243,9 +320,9 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.historyList.appendChild(div);
     }
 
-    // =========================================================
+    // ================================
     // FUNCIÓN AUXILIAR: Mostrar Alerta
-    // =========================================================
+    // ================================
     function showMessage(text, className) {
         elements.messageContainer.classList.remove('hidden');
         // Pisar clases anteriores y sustituirlas por las que decidan el color
@@ -253,16 +330,18 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.gameMessage.textContent = text;
     }
 
-    // =========================================================
+    // ==============================================
     // FUNCIÓN: FINALIZAR EL JUEGO (Ganado o Perdido)
-    // =========================================================
-    function endGame(isWin, finalGuess) {
-        // Bloquear UI
+    // ==============================================
+    function endGame(isWin, finalGuess, isTimeout = false, isSurrender = false) {
+        // Bloquear UI y parar temporizador
+        clearInterval(timerInterval);
         elements.guessInput.disabled = true;
         elements.guessButton.disabled = true;
 
-        // Intercambiar botones (Adivinar por Reiniciar)
+        // Intercambiar botones
         elements.inputSection.classList.add('hidden');
+        elements.extraActions.classList.add('hidden');
         elements.actionSection.classList.remove('hidden');
 
         if (isWin) {
@@ -271,13 +350,21 @@ document.addEventListener('DOMContentLoaded', () => {
             showMessage(`¡Excelente! Adivinaste en ${attempts} intentos.`, 'msg-success');
         } else {
             playLoseSound();
-            showMessage(`¡Se acabaron tus intentos! El número era ${magicNumber}.`, 'msg-error');
+            if (isTimeout) {
+                showMessage(`¡Tiempo agotado! ⏳ El número era ${magicNumber}.`, 'msg-error');
+            } else if (isSurrender) {
+                const insultos = ["¡Qué gallina! 🐔", "¡Rendirse no es de campeones! 🍼", "¡Más suerte para la próxima, cobarde! 🏳️", "¡Ups, te quedó grande el reto! 🤧"];
+                const rndInsulto = insultos[Math.floor(Math.random() * insultos.length)];
+                showMessage(`${rndInsulto} El número era ${magicNumber}.`, 'msg-error');
+            } else {
+                showMessage(`¡Se acabaron tus intentos! El número era ${magicNumber}.`, 'msg-error');
+            }
         }
     }
 
-    // =========================================================
+    // ==============================================
     // EVENT LISTENERS (Monitoreo de clicks y teclas)
-    // =========================================================
+    // ==============================================
 
     // Al pulsar el botón "Adivinar"
     elements.guessButton.addEventListener('click', handleGuess);
@@ -294,8 +381,73 @@ document.addEventListener('DOMContentLoaded', () => {
         initGame();
     });
 
-    // =========================================================
-    // ARRANQUE AUTOMÁTICO INICIAL
-    // =========================================================
-    initGame();
+    // Al cambiar la dificultad en el selector
+    elements.difficultySelect.addEventListener('change', () => {
+        playClickSound();
+    });
+
+    // Evento del Modal: Empezar juego
+    elements.startGameBtn.addEventListener('click', () => {
+        initAudio();
+        playClickSound();
+
+        elements.welcomeModal.classList.add('hidden');
+        elements.mainGame.classList.remove('hidden');
+
+        initGame();
+    });
+
+    // Evento para volver al menú de inicio
+    elements.menuToggle.addEventListener('click', () => {
+        playClickSound();
+        clearInterval(timerInterval);
+
+        // Ocultar juego principal y mostrar el modal
+        elements.mainGame.classList.add('hidden');
+        elements.welcomeModal.classList.remove('hidden');
+    });
+
+    // ================================
+    // EVENTOS EXTRAS: PISTA Y RENDIRSE
+    // ================================
+    elements.giveupButton.addEventListener('click', () => {
+        playClickSound();
+        endGame(false, null, false, true); // true param for surrender
+    });
+
+    elements.hintButton.addEventListener('click', () => {
+        if (attempts >= maxAttempts - 1) return; // No puede pedir pista si le queda solo 1 intento (moriría por pedir pista)
+        playClickSound();
+
+        // Cobrar 1 intento por la pista
+        attempts++;
+        const remainingAttempts = maxAttempts - attempts;
+        elements.attemptsLeft.textContent = remainingAttempts;
+        if (remainingAttempts <= 3) {
+            elements.attemptsLeft.style.color = 'white';
+            elements.attemptsLeft.style.background = 'var(--danger)';
+        }
+
+        elements.hintButton.classList.add('hidden'); // Solo 1 pista por partida
+
+        // Lógica de Pista Matemática
+        let hintStr = "";
+        const isPar = magicNumber % 2 === 0;
+
+        if (isPar) {
+            hintStr += "El número es PAR";
+        } else {
+            hintStr += "El número es IMPAR";
+        }
+
+        // Pista extra si es múltiplo de algo común
+        if (magicNumber % 5 === 0) hintStr += " y múltiplo de 5.";
+        else if (magicNumber % 3 === 0) hintStr += " y múltiplo de 3.";
+        else hintStr += ".";
+
+        showMessage(`🕵️ PISTA: ${hintStr}`, 'msg-info');
+
+        // Enfoque rápido al input después de leer
+        elements.guessInput.focus();
+    });
 });

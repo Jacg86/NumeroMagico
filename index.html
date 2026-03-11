@@ -10,20 +10,49 @@
 </head>
 
 <body>
-    <div class="game-wrapper">
+    <!-- Overlay/Ventana de Bienvenida -->
+    <div id="welcome-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="icon-container">
+                <span class="icon">✨</span>
+            </div>
+            <h2>¡Bienvenido!</h2>
+            <p>Selecciona tu nivel de dificultad para comenzar:</p>
+
+            <div class="difficulty-section modal-select">
+                <select id="difficulty-select" class="form-select">
+                    <option value="easy">Fácil (1 a 50 : 10 int.)</option>
+                    <option value="medium" selected>Medio (1 a 100 : 7 int.)</option>
+                    <option value="hard">Difícil (1 a 500 : ⏱ 60s)</option>
+                </select>
+            </div>
+
+            <button id="start-game-btn" class="btn-primary">Empezar a Jugar</button>
+        </div>
+    </div>
+
+    <!-- Contenedor Principal del Juego (Oculto al inicio) -->
+    <div class="game-wrapper hidden" id="main-game">
         <div class="game-card">
+            <button id="menu-toggle" class="menu-btn" aria-label="Volver al Menú" title="Menú Principal">🏠</button>
             <button id="theme-toggle" class="theme-btn" aria-label="Cambiar tema">🌙</button>
             <header>
                 <div class="icon-container">
                     <span class="icon">✨</span>
                 </div>
                 <h1>Número Mágico</h1>
-                <p>He pensado un número del <strong>1 al 100</strong>. ¿Puedes adivinarlo?</p>
+                <p id="range-text">He pensado un número del <strong>1 al 100</strong>. ¿Puedes adivinarlo?</p>
             </header>
+
             <div class="game-stats">
                 <div class="stat-pill">
                     <span class="stat-label">Intentos restantes</span>
                     <span class="stat-value" id="attempts-left">10</span>
+                </div>
+                <!-- Temporizador (Solo en Difícil) -->
+                <div class="stat-pill hidden" id="timer-pill">
+                    <span class="stat-label">Tiempo</span>
+                    <span class="stat-value" id="time-left">60</span>
                 </div>
             </div>
 
@@ -40,6 +69,12 @@
                     <p id="game-message"></p>
                 </div>
 
+                <!-- Botones Extras de Pista / Rendirse -->
+                <div class="extra-actions hidden" id="extra-actions">
+                    <button id="hint-button" class="btn-secondary hidden" title="Cuesta 1 intento">💡 Ver Pista</button>
+                    <button id="giveup-button" class="btn-danger">🏳️ Rendirse</button>
+                </div>
+
                 <!-- Sección de acciones finales: Botón para reiniciar (oculto por defecto) -->
                 <div class="action-section hidden" id="action-section">
                     <button id="restart-button" class="btn-secondary">Jugar de nuevo</button>
@@ -54,7 +89,6 @@
         </div>
     </div>
 
-    <!-- Referencia al archivo de JavaScript donde está la lógica del juego -->
     <script src="js/script.js"></script>
 </body>
 

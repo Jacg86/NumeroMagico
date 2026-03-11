@@ -20,8 +20,104 @@ document.addEventListener('DOMContentLoaded', () => {
         historySection: document.getElementById('history-section'),
         historyList: document.getElementById('history-list'),
         inputSection: document.getElementById('input-section'),
-        actionSection: document.getElementById('action-section')
+        actionSection: document.getElementById('action-section'),
+        themeToggle: document.getElementById('theme-toggle'),
+        gameCard: document.querySelector('.game-card')
     };
+
+    // =========================================================
+    // MODO OSCURO (Dark Mode)
+    // =========================================================
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        elements.themeToggle.textContent = '☀️';
+    }
+
+    elements.themeToggle.addEventListener('click', () => {
+        initAudio();
+        playClickSound();
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+            document.documentElement.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+            elements.themeToggle.textContent = '🌙';
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+            elements.themeToggle.textContent = '☀️';
+        }
+    });
+
+    // =========================================================
+    // EFECTOS DE SONIDO Y ANIMACIÓN
+    // =========================================================
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new AudioContext();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playTone(freq, type, duration, vol = 0.1) {
+        if (!audioCtx) return;
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + duration);
+    }
+
+    function playWinSound() {
+        initAudio();
+        playTone(400, 'sine', 0.2);
+        setTimeout(() => playTone(523.25, 'sine', 0.2), 150);
+        setTimeout(() => playTone(659.25, 'sine', 0.2), 300);
+        setTimeout(() => playTone(783.99, 'sine', 0.4), 450);
+    }
+
+    function playLoseSound() {
+        initAudio();
+        playTone(300, 'triangle', 0.3);
+        setTimeout(() => playTone(250, 'triangle', 0.3), 200);
+        setTimeout(() => playTone(200, 'triangle', 0.5), 400);
+    }
+
+    function playErrorSound() {
+        initAudio();
+        playTone(200, 'sawtooth', 0.15, 0.05);
+        setTimeout(() => playTone(150, 'sawtooth', 0.2, 0.05), 120);
+    }
+
+    function playClickSound() {
+        if (audioCtx && audioCtx.state !== 'suspended') {
+            playTone(600, 'sine', 0.1, 0.02);
+        }
+    }
+
+    function playPopSound() {
+        if (audioCtx && audioCtx.state !== 'suspended') {
+            playTone(400, 'sine', 0.1, 0.03);
+        }
+    }
+
+    function triggerError(msg) {
+        showMessage(msg, 'msg-warning');
+        playErrorSound();
+        elements.gameCard.classList.remove('error-shake');
+        void elements.gameCard.offsetWidth; // Force Reflow
+        elements.gameCard.classList.add('error-shake');
+    }
 
     // =========================================================
     // FUNCIÓN: INICIALIZAR EL JUEGO (O REINICIAR)
@@ -63,11 +159,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // FUNCIÓN: GESTIONAR LA LÓGICA DE Adivinar
     // =========================================================
     function handleGuess() {
+        initAudio();
+
         const guessValue = elements.guessInput.value;
 
         // Válidación 1: Estar vacío o no ser número
         if (!guessValue || isNaN(guessValue)) {
-            showMessage('Ingresa un número válido', 'msg-warning');
+            triggerError('Ingresa un número válido');
             return;
         }
 
@@ -75,13 +173,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Válidación 2: Fuera del rango 1 al 100
         if (guess < 1 || guess > 100) {
-            showMessage('El número debe ser del 1 al 100', 'msg-warning');
+            triggerError('El número debe ser del 1 al 100');
             return;
         }
 
         // Válidación 3: No repetir intentos del historial
         if (history.includes(guess)) {
-            showMessage('Ya intentaste con este número', 'msg-warning');
+            triggerError('Ya intentaste con este número');
             return;
         }
 
@@ -117,6 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const hint = guess > magicNumber ? 'menor' : 'mayor';
             const icon = guess > magicNumber ? '↓' : '↑';
             const status = guess > magicNumber ? 'high' : 'low';
+
+            playPopSound();
 
             // Mostrar pista al usuario (azul o rojo según si es bajo/alto)
             showMessage(`El número es ${hint} que ${guess}`, guess > magicNumber ? 'msg-error' : 'msg-info');
@@ -166,9 +266,11 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.actionSection.classList.remove('hidden');
 
         if (isWin) {
+            playWinSound();
             addHistoryItem(finalGuess, 'correct', '✨');
             showMessage(`¡Excelente! Adivinaste en ${attempts} intentos.`, 'msg-success');
         } else {
+            playLoseSound();
             showMessage(`¡Se acabaron tus intentos! El número era ${magicNumber}.`, 'msg-error');
         }
     }
@@ -186,7 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Al pulsar "Jugar de Nuevo"
-    elements.restartButton.addEventListener('click', initGame);
+    elements.restartButton.addEventListener('click', () => {
+        initAudio();
+        playClickSound();
+        initGame();
+    });
 
     // =========================================================
     // ARRANQUE AUTOMÁTICO INICIAL

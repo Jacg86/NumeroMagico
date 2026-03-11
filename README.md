@@ -1,28 +1,28 @@
 # Número Mágico
 
-¡Bienvenido a **Número Mágico**! Un divertido y moderno minijuego web interactivo desarrollado con puro HTML, CSS y JavaScript (sin basarse en librerías o frameworks externos).
+Sistema interactivo web basado en la lógica de adivinanza de números con límite de tiempo e intentos. Desarrollado con HTML, CSS y JavaScript Vanilla.
 
-## Objetivo del Juego
-El juego ha "pensado" automáticamente en un número secreto del **1 al 100**. Tu misión principal es descubrir cuál es ese número mágico usando pistas de "caliente/frío" (mayor o menor), ¡pero ten cuidado! Tienes un límite de **10 intentos** máximo para encontrar la respuesta correcta.
+## Objetivo del Proyecto
+El objetivo principal de esta aplicación es adivinar un número generado aleatoriamente por el sistema dentro de un rango predefinido. El usuario cuenta con un límite de intentos y, dependiendo del nivel de dificultad seleccionado, restricciones de tiempo. El sistema proporciona retroalimentación matemática constante para guiar al usuario hacia la resolución del desafío.
 
-## Características y Funcionalidades
-A través del uso de tecnologías web vanilla, este juego incluye:
-- **Tecnología Frontend de Vórtice:** Interfaz neumórfica minimalista "Light Mode" brillante, atractiva al usuario final, empleando la fuente moderna _Poppins_ de Google Fonts.
-- **Validación Robusta de Entradas:** El sistema valida entradas vacías, o que no sean números válidos ni se encuentren dentro del rango del `1` al `100`.
-- **Registro Antimemoria:** Impide que gastes un intento por introducir un número previamente jugado accidentalmente.
-- **Historial Interactivo de Intentos:** Muestra el listado de todos tus intentos en formatos de etiquetas (pills) indicando visualmente con colores suaves e iconos de flecha si el número secreto verdadero es más alto (rojo), más bajo (azul) o en su defecto si lograste acertar espectacularmente (verde).
-- **Control de Presión Térmica:** ¡El color del contador de intentos alertará agresivamente a rojo brillante cuando apenas te queden `3` intentos o menos!
-- **Feedback Constante (UI):** Pistas de texto que actualizan en tiempo real después de cada adivinanza errónea indicando con suavidad hacia donde ir.
-- **Botón de Reset:** Un botón que restablece tu salud (intentos), vacía todo de la memoria de la pantalla, limpia el tablero inicial y genera instántaneamente un nuevo número secreto para poder disfrutar un nuevo juego sin recargar el navegador Web.
+## Características Principales
 
-## ¿Cómo Jugar?
-1. Visualiza tu objetivo actual y luego sitúa el click izquierdo (o toca) sobre la caja central del teclado con la etiqueta de texto `00`.
-2. Digita tu adivinanza (debe estar entre 1 y 100).
-3. Presiona rápidamente el botón principal color índigo de **"Adivinar"** (O bien, presiona tranquilamente la tecla de salto de línea `Enter` / `Intro` en tu ordenador de preferencia).
-4. Lee detalladamente el recuadro blanco de alertas de sistema, revisa el estatus de tu progreso actual y prepara el mejor número en contra-ataque a tu favor guiándote por si dice _"mayor"_ o _"menor"_.
-5. Festeja en lo alto o llora ante la derrota. 
+- **Niveles de Dificultad Adaptativos:** Implementación de tres niveles distintos: Fácil (1-50), Medio (1-100) y Difícil (1-500).
+- **Sistema Contrarreloj:** Integración de un temporizador de 60 segundos exclusivo para el modo de mayor dificultad.
+- **Soporte de Tema Oscuro:** Alternancia dinámica entre modo claro y oscuro, preservando la preferencia del usuario mediante el uso de `localStorage`.
+- **Integración de Web Audio API:** Generación asíncrona de efectos sonoros sintetizados para acciones clave interactuando con el DOM (clics, alertas, fin de juego).
+- **Herramientas de Asistencia (Pistas):** Lógica matemática para proporcionar pistas sobre la paridad y los submúltiplos del número objetivo, a cambio de una reducción en los intentos.
+- **Feedback Visual y Habilidad Motriz:** Retroalimentación inmediata del estado de la entrada a través de animaciones por keyframes (`shake`), estado cromático de componentes y la adición del motor externo `canvas-confetti` para indicadores de éxito.
 
-## Tecnologías Utilizadas
-- **HTML5:** Marcado semántico y estructura flexible del DOM.
-- **CSS3:** Estilización moderna (sombreados neumórficos, transiciones, efectos hover, fondos degradados o variables dinámicas CSS).
-- **JavaScript Moderno (ES6+):** Motor lógico, validación en caliente, arreglo dinámico de componentes y renderizado interactivo DOM directo hacia la tarjeta central de la WebApp.
+## Instrucciones de Uso
+1. Ejecute el archivo `index.html` en un navegador web compatible.
+2. En la interfaz modal de inicio, seleccione el nivel de dificultad deseado y proceda a inicializar el sistema.
+3. Ingrese un valor numérico entero en el campo correspondiente.
+4. Presione el botón de validación o utilice la tecla `Enter`.
+5. Observe el panel inferior del historial para ajustar sus estimaciones subsecuentes basándose en si el sistema indica que el objetivo es de valor mayor o menor.
+6. Emplee los botones extras para solicitar asistencia o reiniciar los valores y volver al menú inicial (`🏠`).
+
+## Stack Tecnológico Utilizado
+- **HTML5:** Marcado rígido y semántico de la estructura general de la aplicación.
+- **CSS3:** Diseño responsivo basado en CSS Variables (`data-theme`), esquemas neumórficos y animaciones de transición.
+- **JavaScript Moderno (ES6+):** Script principal para la manipulación del DOM, el procesamiento algorítmico, el control de temporizadores asíncronos y la modulación de frecuencias sonoras mediante la interfaz nativa Web Audio API.

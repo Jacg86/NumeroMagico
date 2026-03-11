@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let history = [];         // Arreglo para guardar los números y prevenir repetidos
     let timerInterval;        // Referencia al temporizador
     let timerSeconds = 0;     // Segundos restantes
+    let inProgress = false;   // Estado de validación del juego
 
     const difficultyConfig = {
         easy: { maxRange: 50, maxAttempts: 10, timeLimit: 0 },
@@ -212,6 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.extraActions.classList.add('hidden');
         elements.hintButton.classList.add('hidden');
 
+        inProgress = true;
+
         // Enfocar el input para escribir de inmediato
         elements.guessInput.focus();
 
@@ -330,10 +333,45 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.gameMessage.textContent = text;
     }
 
+    // =========================================================
+    // FUNCIÓN: EFECTO CONFETI (VICTORIA)
+    // =========================================================
+    function fireConfetti() {
+        const duration = 3000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 2000 };
+
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        const interval = setInterval(function () {
+            const timeLeft = animationEnd - Date.now();
+
+            if (timeLeft <= 0) {
+                return clearInterval(interval);
+            }
+
+            const particleCount = 50 * (timeLeft / duration);
+            // Lanza desde dos orígenes (izquierda y derecha)
+            confetti(Object.assign({}, defaults, {
+                particleCount,
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+            }));
+            confetti(Object.assign({}, defaults, {
+                particleCount,
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+            }));
+        }, 250);
+    }
+
     // ==============================================
     // FUNCIÓN: FINALIZAR EL JUEGO (Ganado o Perdido)
     // ==============================================
     function endGame(isWin, finalGuess, isTimeout = false, isSurrender = false) {
+        if (!inProgress) return;
+        inProgress = false;
+
         // Bloquear UI y parar temporizador
         clearInterval(timerInterval);
         elements.guessInput.disabled = true;
@@ -346,6 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isWin) {
             playWinSound();
+            fireConfetti();
             addHistoryItem(finalGuess, 'correct', '✨');
             showMessage(`¡Excelente! Adivinaste en ${attempts} intentos.`, 'msg-success');
         } else {
